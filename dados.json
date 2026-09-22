@@ -1,0 +1,86 @@
+{
+  "atualizadoEm": "2026-09-22T10:51:22-03:00",
+  "meses": [
+    {
+      "mes": "2026-01",
+      "nome": "Jan",
+      "nomeCompleto": "Janeiro/2026",
+      "cobre": 32155.0,
+      "barras": 27227.0,
+      "aluminio": 2075.0,
+      "total": 61457.0
+    },
+    {
+      "mes": "2026-02",
+      "nome": "Fev",
+      "nomeCompleto": "Fevereiro/2026",
+      "cobre": 40514.0,
+      "barras": 29603.0,
+      "aluminio": 7398.0,
+      "total": 77515.0
+    },
+    {
+      "mes": "2026-03",
+      "nome": "Mar",
+      "nomeCompleto": "Março/2026",
+      "cobre": 32585.0,
+      "barras": 42118.0,
+      "aluminio": 4372.0,
+      "total": 79075.0
+    },
+    {
+      "mes": "2026-04",
+      "nome": "Abr",
+      "nomeCompleto": "Abril/2026",
+      "cobre": 38108.0,
+      "barras": 35527.0,
+      "aluminio": 9947.0,
+      "total": 83582.0
+    },
+    {
+      "mes": "2026-05",
+      "nome": "Mai",
+      "nomeCompleto": "Maio/2026",
+      "cobre": 32681.0,
+      "barras": 38833.0,
+      "aluminio": 9537.0,
+      "total": 81051.0
+    },
+    {
+      "mes": "2026-06",
+      "nome": "Jun",
+      "nomeCompleto": "Junho/2026",
+      "cobre": 33302.0,
+      "barras": 38961.0,
+      "aluminio": 10301.0,
+      "total": 82564.0
+    },
+    {
+      "mes": "2026-07",
+      "nome": "Jul",
+      "nomeCompleto": "Julho/2026",
+      "cobre": 28100.0,
+      "barras": 37478.0,
+      "aluminio": 6048.0,
+      "total": 71626.0
+    },
+    {
+      "mes": "2026-08",
+      "nome": "Ago",
+      "nomeCompleto": "Agosto/2026",
+      "cobre": 21935.0,
+      "barras": 27670.0,
+      "aluminio": 5148.0,
+      "total": 54753.0
+    },
+    {
+      "mes": "2026-09",
+      "nome": "Set",
+      "nomeCompleto": "Setembro/2026",
+      "cobre": 14709.0,
+      "barras": 17011.0,
+      "aluminio": 6261.0,
+      "total": 37981.0
+    }
+  ]
+}
