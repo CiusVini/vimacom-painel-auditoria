@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Painel de Auditoria — Vimacom</title>
+<link rel="icon" href="./assets/favicon-32.png" />
+<style>
+/* ===== Tokens — herdados do Vimacom Executive (mesma marca) ===== */
+:root {
+  --bg: #060a13;
+  --bg-glow-1: #0d1c33;
+  --bg-glow-2: #1a0d2e;
+  --surface: #0f1626;
+  --surface-2: #161f36;
+  --surface-3: #1e2a48;
+  --border: #232f4d;
+  --border-strong: #34456e;
+
+  --text: #f3f6fd;
+  --muted: #93a4c9;
+  --faint: #5c6d92;
+
+  --accent: #22d3ee;
+  --accent-2: #818cf8;
+  --accent-ink: #04202a;
+
+  --green: #34d399;
+  --amber: #fbbf24;
+  --red: #f87171;
+
+  --cor-cobre: #fb923c;
+  --cor-barras: #22d3ee;
+  --cor-aluminio: #818cf8;
+
+  --radius-lg: 12px;
+  --radius: 9px;
+  --radius-sm: 6px;
+
+  --font: "Inter var", Inter, ui-sans-serif, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+
+  --dur: .25s;
+  --ease: cubic-bezier(.2,.8,.25,1);
+}
+
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  background:
+    radial-gradient(900px 480px at 12% -8%, var(--bg-glow-1), transparent 60%),
+    radial-gradient(700px 420px at 100% 0%, var(--bg-glow-2), transparent 55%),
+    var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+}
+.tabular { font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1; }
+
+.topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 24px; height: 56px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(6, 10, 19, .8);
+  backdrop-filter: blur(12px);
+  position: sticky; top: 0; z-index: 10;
+}
+.brand { display: flex; align-items: center; gap: 9px; font-weight: 700; font-size: 13px; letter-spacing: .4px; color: var(--muted); }
+.brand img { width: 20px; height: 20px; border-radius: 5px; }
+.brand b { color: var(--text); }
+.brand .tag {
+  margin-left: 6px; font-size: 9.5px; font-weight: 700; letter-spacing: .6px; text-transform: uppercase;
+  color: var(--accent); background: rgba(34,211,238,.12); border: 1px solid rgba(34,211,238,.25);
+  border-radius: 999px; padding: 2px 8px;
+}
+.atualizado { font-size: 11px; color: var(--faint); text-align: right; }
+.atualizado b { color: var(--muted); font-weight: 600; }
+
+.main { max-width: 1320px; margin: 0 auto; padding: 22px 24px 48px; }
+
+.eyebrow { font-size: 10px; letter-spacing: 1px; color: var(--faint); text-transform: uppercase; font-weight: 600; margin: 26px 0 10px; }
+.eyebrow:first-child { margin-top: 4px; }
+
+/* ---------- KPIs ---------- */
+.kpi-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+.kpi { background: var(--surface); padding: 15px 16px; }
+.kpi .k { font-size: 9.5px; letter-spacing: .6px; text-transform: uppercase; color: var(--faint); font-weight: 600; }
+.kpi .v { font-size: 19px; font-weight: 700; margin-top: 7px; letter-spacing: -.2px; }
+.kpi .trend { display: inline-flex; align-items: center; gap: 3px; font-size: 11px; font-weight: 600; margin-top: 6px; }
+.kpi .trend.pos { color: var(--green); }
+.kpi .trend.neg { color: var(--red); }
+.kpi .trend.neutral { color: var(--faint); }
+.kpi .sub { color: var(--faint); font-size: 10.5px; margin-top: 2px; }
+
+/* ---------- Grid de painéis ---------- */
+.grid-main { display: grid; grid-template-columns: 1.7fr 1fr; gap: 12px; margin-top: 12px; }
+.grid-full { margin-top: 12px; }
+.panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 20px; }
+.panel-title { font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; }
+.panel-title .sub { color: var(--faint); font-weight: 400; font-size: 10.5px; }
+
+/* ---------- Gráfico de linha — neon glow ---------- */
+.linechart { position: relative; height: 190px; }
+.linechart svg { width: 100%; height: 100%; display: block; overflow: visible; }
+.lc-line { fill: none; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+.lc-glow-blur { fill: none; stroke-width: 5.5; opacity: .28; filter: blur(5px); }
+.lc-glow-mid { fill: none; stroke-width: 2.8; opacity: .5; filter: blur(1.5px); }
+.lc-area { opacity: 0; transition: opacity .5s var(--ease); }
+.lc-area.in { opacity: .85; }
+.lc-dot {
+  fill: var(--bg); stroke-width: 2; cursor: pointer; opacity: 0;
+  transform-box: fill-box; transform-origin: center; transform: scale(.2);
+  transition: opacity .3s var(--ease), transform .4s cubic-bezier(.34,1.56,.64,1);
+}
+.lc-dot-glow {
+  opacity: 0; filter: blur(3px); pointer-events: none;
+  transform-box: fill-box; transform-origin: center; transform: scale(.2);
+  transition: opacity .3s var(--ease), transform .4s cubic-bezier(.34,1.56,.64,1);
+}
+.lc-dot.in { opacity: 1; transform: scale(1); }
+.lc-dot.in:hover, .lc-dot.tapped { transform: scale(1.4); }
+.lc-dot-glow.in { opacity: .55; transform: scale(1); }
+.lc-vals { display: flex; justify-content: space-between; margin-top: 8px; }
+.lc-vals span { font-size: 10px; color: var(--muted); font-weight: 600; }
+.lc-labels { display: flex; justify-content: space-between; margin-top: 2px; }
+.lc-labels span { font-size: 9.5px; color: var(--faint); }
+
+.legend { display: flex; gap: 16px; margin-bottom: 14px; flex-wrap: wrap; }
+.legend .item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--muted); font-weight: 600; }
+.legend .dot { width: 8px; height: 8px; border-radius: 50%; box-shadow: 0 0 6px 1px currentColor; }
+
+/* ---------- Barras de participação (glow) ---------- */
+.share-rows { display: flex; flex-direction: column; gap: 16px; }
+.share-row .head { display: flex; justify-content: space-between; font-size: 12.5px; margin-bottom: 6px; }
+.share-row .head .label { color: var(--text); font-weight: 600; display: flex; align-items: center; gap: 7px; }
+.share-row .head .label .dot { width: 8px; height: 8px; border-radius: 50%; box-shadow: 0 0 6px 1px currentColor; }
+.share-row .head .value { font-weight: 700; }
+.share-row .foot { font-size: 10.5px; color: var(--faint); margin-top: 4px; }
+.share-track { height: 7px; border-radius: 999px; background: var(--surface-3); overflow: hidden; }
+.share-fill { height: 100%; border-radius: 999px; width: 0; transition: width 1s var(--ease); }
+
+/* ---------- Ranking ---------- */
+.ranking { display: flex; flex-direction: column; gap: 2px; }
+.ranking .row { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--border); }
+.ranking .row:last-child { border-bottom: none; }
+.ranking .pos {
+  width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  font-size: 10.5px; font-weight: 700; background: var(--surface-3); color: var(--muted); flex-shrink: 0;
+}
+.ranking .row.top1 .pos { background: rgba(251,191,36,.18); color: var(--amber); }
+.ranking .row.top2 .pos { background: rgba(147,164,201,.15); color: var(--muted); }
+.ranking .row.top3 .pos { background: rgba(251,146,60,.15); color: var(--cor-cobre); }
+.ranking .mes { flex: 1; font-size: 12.5px; color: var(--text); font-weight: 500; }
+.ranking .kg { font-size: 12.5px; font-weight: 700; }
+
+/* ---------- Tabela ---------- */
+.tabela-scroll { overflow-x: auto; }
+table.dados { border-collapse: collapse; width: 100%; min-width: 620px; font-size: 12.5px; }
+table.dados th, table.dados td { text-align: right; padding: 10px 12px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+table.dados th:first-child, table.dados td:first-child { text-align: left; }
+table.dados th { color: var(--faint); font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; }
+table.dados tbody tr:hover { background: var(--surface-2); }
+table.dados tfoot td { font-weight: 700; color: var(--text); border-top: 1px solid var(--border-strong); border-bottom: none; }
+
+.minibar-tip {
+  position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); margin-bottom: 6px;
+  background: var(--surface-3); color: var(--text); font-size: 11px; font-weight: 700;
+  padding: 4px 8px; border-radius: 6px; white-space: nowrap; pointer-events: none;
+  box-shadow: 0 8px 20px -6px rgba(0,0,0,.5); border: 1px solid var(--border-strong);
+  opacity: 0; transition: opacity .12s var(--ease); z-index: 5;
+}
+.minibar-tip.show { opacity: 1; }
+
+.footnote { margin-top: 28px; font-size: 11px; color: var(--faint); line-height: 1.6; border-top: 1px solid var(--border); padding-top: 16px; }
+
+@media (max-width: 980px) {
+  .kpi-grid { grid-template-columns: repeat(3, 1fr); }
+  .grid-main { grid-template-columns: 1fr; }
+}
+@media (max-width: 560px) {
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+  .main { padding: 16px 14px 40px; }
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">
+    <img src="./assets/logo-96.png" alt="Vimacom" onerror="this.style.display='none'" />
+    <span>VIMACOM <b>AUDITORIA</b><span class="tag">Volume · kg</span></span>
+  </div>
+  <div class="atualizado">Dados atualizados em<br><b id="atualizadoEm">—</b></div>
+</div>
+
+<div class="main">
+  <div class="eyebrow">Resumo do período</div>
+  <div class="kpi-grid" id="kpiGrid"></div>
+
+  <div class="eyebrow">Evolução</div>
+  <div class="grid-main">
+    <div class="panel">
+      <div class="panel-title">Volume total vendido por mês <span class="sub">kg, todas as famílias</span></div>
+      <div id="graficoTotal"></div>
+    </div>
+    <div class="panel">
+      <div class="panel-title">Participação por família <span class="sub">acumulado do período</span></div>
+      <div class="share-rows" id="shareRows"></div>
+    </div>
+  </div>
+
+  <div class="grid-full">
+    <div class="panel">
+      <div class="panel-title">Evolução por família <span class="sub">kg por mês</span></div>
+      <div class="legend" id="legendaFamilias"></div>
+      <div id="graficoFamilias"></div>
+    </div>
+  </div>
+
+  <div class="grid-main">
+    <div class="panel">
+      <div class="panel-title">Detalhamento mensal <span class="sub">kg vendidos</span></div>
+      <div class="tabela-scroll">
+        <table class="dados" id="tabelaMensal"></table>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-title">Ranking de meses <span class="sub">maior volume</span></div>
+      <div class="ranking" id="ranking"></div>
+    </div>
+  </div>
+
+  <div class="footnote" id="footnote"></div>
+</div>
+
+<script>
+const CORES = { Cobre: 'var(--cor-cobre)', Barras: 'var(--cor-barras)', Aluminio: 'var(--cor-aluminio)' };
+const CORES_HEX = { Cobre: '#fb923c', Barras: '#22d3ee', Aluminio: '#818cf8' };
+const NOMES_LEGIVEIS = { Cobre: 'Cobre', Barras: 'Barras', Aluminio: 'Alumínio' };
+
+function numKg(v) {
+  return Math.round(v).toLocaleString('pt-BR') + ' kg';
+}
+function num(v) {
+  return Math.round(v).toLocaleString('pt-BR');
+}
+function pct(v, casas) {
+  return v.toLocaleString('pt-BR', { minimumFractionDigits: casas ?? 1, maximumFractionDigits: casas ?? 1 }) + '%';
+}
+function safe(v) {
+  const d = document.createElement('div');
+  d.textContent = v == null ? '' : String(v);
+  return d.innerHTML;
+}
+
+function curvaSuavePath(pts) {
+  if (pts.length < 2) return '';
+  if (pts.length === 2) return `M${pts[0][0]},${pts[0][1]} L${pts[1][0]},${pts[1][1]}`;
+  let d = `M${pts[0][0]},${pts[0][1]}`;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const p0 = pts[i - 1] || pts[i];
+    const p1 = pts[i];
+    const p2 = pts[i + 1];
+    const p3 = pts[i + 2] || p2;
+    const cp1x = p1[0] + (p2[0] - p0[0]) / 6;
+    const cp1y = p1[1] + (p2[1] - p0[1]) / 6;
+    const cp2x = p2[0] - (p3[0] - p1[0]) / 6;
+    const cp2y = p2[1] - (p3[1] - p1[1]) / 6;
+    d += ` C${cp1x.toFixed(2)},${cp1y.toFixed(2)} ${cp2x.toFixed(2)},${cp2y.toFixed(2)} ${p2[0]},${p2[1]}`;
+  }
+  return d;
+}
+
+/* Gráfico de linha única, com destaque de pico/vale — mesma técnica
+   "neon glow" do Vimacom Executive (traço nítido + 2 cópias borradas). */
+function linhaTempoHTML(id, pontos, cor) {
+  if (!pontos.length) return '<div style="color:var(--faint);font-size:12px;padding:40px 0;text-align:center">Sem dados.</div>';
+  const valores = pontos.map(p => p.v);
+  const vMin = Math.min(0, ...valores), vMax = Math.max(...valores);
+  const faixa = (vMax - vMin) || 1;
+  const W = 700, H = 190, padX = 14, padY = 20;
+  const n = pontos.length;
+  const xAt = i => n > 1 ? padX + (i / (n - 1)) * (W - padX * 2) : W / 2;
+  const yAt = v => H - padY - ((v - vMin) / faixa) * (H - padY * 2);
+  const xy = pontos.map((p, i) => [Number(xAt(i).toFixed(1)), Number(yAt(p.v).toFixed(1))]);
+  const linhaPath = curvaSuavePath(xy);
+  const areaPath = `${linhaPath} L${xy[n - 1][0]},${(H - padY).toFixed(1)} L${xy[0][0]},${(H - padY).toFixed(1)} Z`;
+  const gradId = id + 'Grad';
+
+  let idxPico = 0, idxVale = 0;
+  valores.forEach((v, i) => { if (v > valores[idxPico]) idxPico = i; if (v < valores[idxVale]) idxVale = i; });
+
+  const corDoPonto = i => i === idxPico ? 'var(--red)' : i === idxVale ? 'var(--green)' : cor;
+  const dots = pontos.map((p, i) => {
+    const [x, y] = xy[i];
+    const destaque = i === idxPico || i === idxVale;
+    const c = corDoPonto(i);
+    const r = destaque ? 7 : 4.5, r2 = destaque ? 4.5 : 3;
+    return `<circle class="lc-dot-glow" cx="${x}" cy="${y}" r="${r}" data-i="${i}" style="fill:${c}"></circle>` +
+      `<circle class="lc-dot" cx="${x}" cy="${y}" r="${r2}" data-i="${i}" style="stroke:${c}" data-valor="${safe(p.x)}: ${numKg(p.v)}"></circle>`;
+  }).join('');
+
+  return `
+    <div class="linechart" id="${id}">
+      <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="${gradId}" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="${cor}" stop-opacity="0.22" />
+            <stop offset="100%" stop-color="${cor}" stop-opacity="0" />
+          </linearGradient>
+        </defs>
+        <path class="lc-area" d="${areaPath}" fill="url(#${gradId})"></path>
+        <path class="lc-glow-blur" d="${linhaPath}" style="stroke:${cor}"></path>
+        <path class="lc-glow-mid" d="${linhaPath}" style="stroke:${cor}"></path>
+        <path class="lc-line" d="${linhaPath}" style="stroke:${cor}"></path>
+        <g>${dots}</g>
+      </svg>
+      <div class="lc-labels">${pontos.map(p => `<span>${safe(p.x)}</span>`).join('')}</div>
+    </div>
+  `;
+}
+
+/* Multi-série: mesma técnica, N linhas coloridas na mesma escala. */
+function linhaTempoMultiHTML(id, series) {
+  const todosValores = series.flatMap(s => s.pontos.map(p => p.v));
+  const vMin = 0, vMax = Math.max(...todosValores, 1);
+  const faixa = (vMax - vMin) || 1;
+  const W = 900, H = 220, padX = 14, padY = 20;
+  const n = series[0].pontos.length;
+  const xAt = i => n > 1 ? padX + (i / (n - 1)) * (W - padX * 2) : W / 2;
+  const yAt = v => H - padY - ((v - vMin) / faixa) * (H - padY * 2);
+
+  const blocos = series.map((s, si) => {
+    const xy = s.pontos.map((p, i) => [Number(xAt(i).toFixed(1)), Number(yAt(p.v).toFixed(1))]);
+    const linhaPath = curvaSuavePath(xy);
+    const dots = s.pontos.map((p, i) => {
+      const [x, y] = xy[i];
+      return `<circle class="lc-dot-glow" cx="${x}" cy="${y}" r="4" data-serie="${si}" data-i="${i}" style="fill:${s.cor}"></circle>` +
+        `<circle class="lc-dot" cx="${x}" cy="${y}" r="2.6" data-serie="${si}" data-i="${i}" style="stroke:${s.cor}" data-valor="${safe(s.nome)} — ${safe(p.x)}: ${numKg(p.v)}"></circle>`;
+    }).join('');
+    return `
+      <path class="lc-glow-blur" data-serie="${si}" d="${linhaPath}" style="stroke:${s.cor}"></path>
+      <path class="lc-glow-mid" data-serie="${si}" d="${linhaPath}" style="stroke:${s.cor}"></path>
+      <path class="lc-line" data-serie="${si}" d="${linhaPath}" style="stroke:${s.cor}"></path>
+      <g>${dots}</g>
+    `;
+  }).join('');
+
+  return `
+    <div class="linechart" id="${id}" style="height:220px">
+      <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">${blocos}</svg>
+      <div class="lc-labels">${series[0].pontos.map(p => `<span>${safe(p.x)}</span>`).join('')}</div>
+    </div>
+  `;
+}
+
+function proxFrame() {
+  return new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+}
+
+async function animarLinha(id, delayBase) {
+  const container = document.getElementById(id);
+  if (!container) return;
+  const linhas = container.querySelectorAll('.lc-line');
+  const DRAW_MS = 1100;
+  linhas.forEach(linha => {
+    const glowMid = container.querySelector(`.lc-glow-mid[data-serie="${linha.dataset.serie ?? ''}"]`) || container.querySelector('.lc-glow-mid');
+    const glowBlur = container.querySelector(`.lc-glow-blur[data-serie="${linha.dataset.serie ?? ''}"]`) || container.querySelector('.lc-glow-blur');
+    const length = linha.getTotalLength();
+    [linha, glowMid, glowBlur].forEach(el => { if (el) { el.style.strokeDasharray = length; el.style.strokeDashoffset = length; } });
+  });
+  await proxFrame();
+  linhas.forEach((linha, si) => {
+    const glowMid = container.querySelectorAll('.lc-glow-mid')[si] || container.querySelector('.lc-glow-mid');
+    const glowBlur = container.querySelectorAll('.lc-glow-blur')[si] || container.querySelector('.lc-glow-blur');
+    [linha, glowMid, glowBlur].forEach(el => {
+      if (!el) return;
+      el.style.transition = `stroke-dashoffset ${DRAW_MS}ms cubic-bezier(.4,0,.2,1)`;
+      el.style.strokeDashoffset = '0';
+    });
+  });
+  const dotsUnicos = container.querySelectorAll('.lc-dot');
+  const porIndice = {};
+  dotsUnicos.forEach(d => { const i = d.dataset.i; (porIndice[i] = porIndice[i] || []).push(d); });
+  const nPts = Object.keys(porIndice).length;
+  Object.keys(porIndice).forEach(i => {
+    const delay = nPts > 1 ? (i / (nPts - 1)) * DRAW_MS : 0;
+    setTimeout(() => porIndice[i].forEach(el => el.classList.add('in')), delay);
+  });
+  const area = container.querySelector('.lc-area');
+  if (area) setTimeout(() => area.classList.add('in'), DRAW_MS * 0.35);
+}
+
+function ativarToque(containerEl, seletor) {
+  if (!containerEl) return;
+  const tip = document.createElement('div');
+  tip.className = 'minibar-tip';
+  containerEl.style.position = containerEl.style.position || 'relative';
+  containerEl.appendChild(tip);
+  containerEl.querySelectorAll(seletor).forEach(el => {
+    el.addEventListener('click', (e) => {
+      e.stopPropagation();
+      containerEl.querySelectorAll('.tapped').forEach(c => c.classList.remove('tapped'));
+      el.classList.add('tapped');
+      tip.textContent = el.dataset.valor;
+      const r = el.getBoundingClientRect();
+      const wrapRect = containerEl.getBoundingClientRect();
+      tip.style.left = (r.left - wrapRect.left + r.width / 2) + 'px';
+      tip.style.bottom = (wrapRect.bottom - r.top) + 'px';
+      tip.classList.add('show');
+    });
+  });
+  document.addEventListener('click', () => {
+    tip.classList.remove('show');
+    containerEl.querySelectorAll('.tapped').forEach(c => c.classList.remove('tapped'));
+  });
+}
+
+function kpiHTML(k) {
+  return `
+    <div class="kpi">
+      <div class="k">${k.k}</div>
+      <div class="v tabular">${k.v}</div>
+      <div class="trend ${k.trend}">${k.trendTxt}</div>
+      <div class="sub">${k.sub}</div>
+    </div>
+  `;
+}
+
+async function carregar() {
+  const resp = await fetch('dados.json?_=' + Date.now());
+  const dados = await resp.json();
+
+  const dt = new Date(dados.atualizadoEm);
+  document.getElementById('atualizadoEm').textContent =
+    dt.toLocaleDateString('pt-BR') + ' às ' + dt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+
+  const meses = dados.meses; // [{mes:'2026-01', nome:'Jan', cobre, barras, aluminio, total}]
+  const totais = { Cobre: 0, Barras: 0, Aluminio: 0 };
+  meses.forEach(m => { totais.Cobre += m.cobre; totais.Barras += m.barras; totais.Aluminio += m.aluminio; });
+  const totalGeral = totais.Cobre + totais.Barras + totais.Aluminio;
+
+  // ---- KPIs ----
+  const mediaMensal = totalGeral / meses.length;
+  let idxPico = 0, idxVale = 0;
+  meses.forEach((m, i) => { if (m.total > meses[idxPico].total) idxPico = i; if (m.total < meses[idxVale].total) idxVale = i; });
+  const primeiro = meses[0], ultimo = meses[meses.length - 1];
+  const variacaoPeriodo = primeiro.total > 0 ? ((ultimo.total - primeiro.total) / primeiro.total * 100) : 0;
+  const produtoLider = Object.entries(totais).sort((a, b) => b[1] - a[1])[0];
+  const pctLider = totalGeral > 0 ? (produtoLider[1] / totalGeral * 100) : 0;
+
+  const kpis = [
+    { k: 'Volume total', v: numKg(totalGeral), trend: 'neutral', trendTxt: `${meses.length} meses`, sub: primeiro.nome + ' – ' + ultimo.nome },
+    { k: 'Média mensal', v: numKg(mediaMensal), trend: 'neutral', trendTxt: 'kg / mês', sub: 'Média simples do período' },
+    { k: 'Mês de pico', v: numKg(meses[idxPico].total), trend: 'pos', trendTxt: meses[idxPico].nome, sub: 'Maior volume do período' },
+    { k: 'Mês de vale', v: numKg(meses[idxVale].total), trend: 'neg', trendTxt: meses[idxVale].nome, sub: 'Menor volume do período' },
+    { k: `${primeiro.nome} → ${ultimo.nome}`, v: (variacaoPeriodo >= 0 ? '+' : '') + pct(variacaoPeriodo, 1), trend: variacaoPeriodo >= 0 ? 'pos' : 'neg', trendTxt: 'variação no período', sub: `${numKg(primeiro.total)} → ${numKg(ultimo.total)}` },
+    { k: 'Produto líder', v: NOMES_LEGIVEIS[produtoLider[0]], trend: 'neutral', trendTxt: numKg(produtoLider[1]), sub: pct(pctLider, 1) + ' do volume total' },
+  ];
+  document.getElementById('kpiGrid').innerHTML = kpis.map(kpiHTML).join('');
+
+  // ---- Gráfico total ----
+  const pontosTotal = meses.map(m => ({ x: m.nome, v: m.total }));
+  document.getElementById('graficoTotal').innerHTML = linhaTempoHTML('graficoTotal', pontosTotal, 'var(--accent)') +
+    `<div class="lc-vals">${pontosTotal.map(p => `<span>${num(p.v)}</span>`).join('')}</div>`;
+  animarLinha('graficoTotal');
+  ativarToque(document.getElementById('graficoTotal'), '.lc-dot');
+
+  // ---- Participação por família ----
+  const ordemShare = Object.entries(totais).sort((a, b) => b[1] - a[1]);
+  document.getElementById('shareRows').innerHTML = ordemShare.map(([nome, kg]) => {
+    const p = totalGeral > 0 ? (kg / totalGeral * 100) : 0;
+    const cor = CORES[nome];
+    return `
+      <div class="share-row">
+        <div class="head">
+          <div class="label"><span class="dot" style="background:${cor};color:${cor}"></span>${NOMES_LEGIVEIS[nome]}</div>
+          <div class="value" style="color:${cor}">${pct(p, 1)}</div>
+        </div>
+        <div class="share-track"><div class="share-fill" data-alvo="${p.toFixed(1)}%" style="background:${cor};box-shadow:0 0 4px 0 ${cor}, 0 0 12px 2px ${cor}66"></div></div>
+        <div class="foot">${numKg(kg)}</div>
+      </div>
+    `;
+  }).join('');
+  await proxFrame();
+  document.querySelectorAll('.share-fill').forEach(el => { el.style.width = el.dataset.alvo; });
+
+  // ---- Evolução por família (multi-série) ----
+  const series = ['Cobre', 'Barras', 'Aluminio'].map(nome => ({
+    nome: NOMES_LEGIVEIS[nome],
+    cor: CORES[nome],
+    pontos: meses.map(m => ({ x: m.nome, v: m[nome.toLowerCase()] })),
+  }));
+  document.getElementById('legendaFamilias').innerHTML = series.map(s =>
+    `<div class="item"><span class="dot" style="background:${s.cor};color:${s.cor}"></span>${s.nome}</div>`
+  ).join('');
+  document.getElementById('graficoFamilias').innerHTML = linhaTempoMultiHTML('graficoFamilias', series);
+  animarLinha('graficoFamilias');
+  ativarToque(document.getElementById('graficoFamilias'), '.lc-dot');
+
+  // ---- Tabela mensal ----
+  const theadHTML = `<thead><tr><th>Mês</th><th>Cobre</th><th>Barras</th><th>Alumínio</th><th>Total</th></tr></thead>`;
+  const bodyHTML = meses.map(m => `
+    <tr>
+      <td>${m.nomeCompleto}</td>
+      <td class="tabular">${num(m.cobre)}</td>
+      <td class="tabular">${num(m.barras)}</td>
+      <td class="tabular">${num(m.aluminio)}</td>
+      <td class="tabular">${num(m.total)}</td>
+    </tr>
+  `).join('');
+  const footHTML = `<tfoot><tr><td>Total</td><td class="tabular">${num(totais.Cobre)}</td><td class="tabular">${num(totais.Barras)}</td><td class="tabular">${num(totais.Aluminio)}</td><td class="tabular">${num(totalGeral)}</td></tr></tfoot>`;
+  document.getElementById('tabelaMensal').innerHTML = theadHTML + '<tbody>' + bodyHTML + '</tbody>' + footHTML;
+
+  // ---- Ranking ----
+  const rankeados = meses.slice().sort((a, b) => b.total - a.total);
+  document.getElementById('ranking').innerHTML = rankeados.map((m, i) => `
+    <div class="row ${i === 0 ? 'top1' : i === 1 ? 'top2' : i === 2 ? 'top3' : ''}">
+      <div class="pos">${i + 1}º</div>
+      <div class="mes">${m.nomeCompleto}</div>
+      <div class="kg tabular">${numKg(m.total)}</div>
+    </div>
+  `).join('');
+
+  document.getElementById('footnote').innerHTML =
+    'Volume físico vendido (kg), apurado a partir do ledger comercial consolidado — excluídas devoluções e remessas para industrialização. ' +
+    'Não inclui valores monetários (receita, custo ou margem). Painel estático, sem login, gerado pelo sistema interno de gestão da Vimacom a cada atualização.';
+}
+
+carregar();
+</script>
+
+</body>
+</html>
