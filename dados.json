@@ -1,5 +1,5 @@
 {
-  "atualizadoEm": "2026-09-28T17:14:49-03:00",
+  "atualizadoEm": "2026-10-01T16:51:57-03:00",
   "meses": [
     {
       "mes": "2026-01",
@@ -72,6 +72,15 @@
       "barras": 27670.0,
       "aluminio": 5148.0,
       "total": 54753.0
+    },
+    {
+      "mes": "2026-09",
+      "nome": "Set",
+      "nomeCompleto": "Setembro/2026",
+      "cobre": 20435.0,
+      "barras": 31242.0,
+      "aluminio": 6331.0,
+      "total": 58008.0
     }
   ]
 }
